@@ -13,9 +13,12 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(googletest)
 
 enable_testing()
+add_library(aeb ./src/vehicle.cpp)
+target_include_directories(aeb PUBLIC ./include)
+file(GLOB TEST_SOURCES CONFIGURE_DEPENDS ./tests/*.cpp)
+add_executable(tests ${TEST_SOURCES})
 
-add_executable(tests ./tests/test_sanity.cpp)
-target_link_libraries(tests PRIVATE GTest::gtest_main)
+target_link_libraries(tests PRIVATE GTest::gtest_main aeb)
 
 include(GoogleTest)
-gtest_discover_tests(tests)
+gtest_discover_tests(tests) 
