@@ -13,3 +13,10 @@ TEST(Vehicle, Acce){
     EXPECT_DOUBLE_EQ(next.position, 1);
     EXPECT_DOUBLE_EQ(next.velocity, 2);
 }
+
+TEST(Vehicle, BrakingStopsAtZero){
+    aeb::VehicleState s{0.0, 2.0, -8.0}; // 2 m/s, braking hard
+    aeb::VehicleState next = aeb::step(s, 1.0);
+    EXPECT_DOUBLE_EQ(next.velocity, 0);
+    EXPECT_DOUBLE_EQ(next.position, 0.25);
+}
