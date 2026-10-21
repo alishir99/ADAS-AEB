@@ -15,7 +15,8 @@ DOWNLOAD_EXTRACT_TIMESTAMP TRUE
 FetchContent_MakeAvailable(googletest)
 
 enable_testing()
-add_library(aeb ./src/vehicle.cpp ./src/ttc.cpp)
+file(GLOB AEB_SOURCES CONFIGURE_DEPENDS ./src/*.cpp)
+add_library(aeb ${AEB_SOURCES})
 target_include_directories(aeb PUBLIC ./include)
 file(GLOB TEST_SOURCES CONFIGURE_DEPENDS ./tests/*.cpp)
 add_executable(tests ${TEST_SOURCES})
