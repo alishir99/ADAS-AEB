@@ -1,5 +1,5 @@
 # ADAS-AEB: Automatic Emergency Braking in C++17
-
+![CI](https://github.com/alishir99/ADAS-AEB/actions/workflows/ci.yml/badge.svg)
 A simulator of **Forward Collision Warning (FCW)** and **Automatic Emergency
 Braking (AEB)**, the car safety feature that warns the driver and brakes by
 itself to avoid hitting the car ahead.
@@ -31,7 +31,7 @@ itself to avoid hitting the car ahead.
 - [ ] Euro NCAP rear-end scenarios (CCRs, CCRm, CCRb) with pass/fail
 - [ ] Plots of speed, gap and TTC over time
 - [ ] Noisy radar + Kalman filter
-- [ ] GitHub Actions CI
+- [x] GitHub Actions CI
 
 ## Build and test
 
