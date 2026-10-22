@@ -27,7 +27,7 @@ itself to avoid hitting the car ahead.
 - [x] Vehicle kinematics with braking clamp
 - [x] Time-to-collision with edge cases (collision, equal speed, lead faster)
 - [x] Threshold-based warn / brake decision
-- [ ] Hysteresis so sensor noise can't make the brakes flicker
+- [x] Hysteresis so sensor noise can't make the brakes flicker
 - [ ] Euro NCAP rear-end scenarios (CCRs, CCRm, CCRb) with pass/fail
 - [ ] Plots of speed, gap and TTC over time
 - [ ] Noisy radar + Kalman filter

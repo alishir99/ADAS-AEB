@@ -30,3 +30,21 @@ TEST(Decide, NoDangerIsIdle){
 TEST(Decide, InsideWarningBand){
     EXPECT_EQ(aeb::decide(2.0), aeb::Aebstate::Warning);
 }
+
+TEST(Update, EscalatesImmediately){
+    aeb::AebController c;
+    EXPECT_EQ(c.update(5.0), aeb::Aebstate::Idle);
+    EXPECT_EQ(c.update(0.5), aeb::Aebstate::FullBrake);
+}
+
+TEST(Update, HoldsThroughNoise){
+    aeb::AebController c;
+    EXPECT_EQ(c.update(1.5), aeb::Aebstate::PartialBrake);
+    EXPECT_EQ(c.update(1.7), aeb::Aebstate::PartialBrake);
+}
+
+TEST(Update, ReleasesAboveMargin){
+    aeb::AebController c;
+    EXPECT_EQ(c.update(1.5), aeb::Aebstate::PartialBrake);
+    EXPECT_EQ(c.update(2.0), aeb::Aebstate::Warning);
+}
