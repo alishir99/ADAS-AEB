@@ -18,10 +18,12 @@ SimResult run(VehicleState ego, VehicleState lead, const AebConfig& cfg,
     AebController ctrl(cfg);
     SimResult r;
     int steps = static_cast<int>(duration/dt); 
-
+ 
     for (int i=0; i<steps; i++){
-        Aebstate s = ctrl.update(ttc(ego, lead));
+        double t = ttc(ego, lead);
+        Aebstate s = ctrl.update(t);
         ego.acceleration = brake_decel(s, cfg);
+        r.trace.push_back({ i * dt, ego.velocity, lead.velocity, (lead.position - ego.position), t, s });
         ego = step(ego, dt);
         lead = step(lead, dt);
         if(lead.position -ego.position <= 0){

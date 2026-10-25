@@ -19,3 +19,14 @@ TEST(Sim,  CCRs50WithoutAebCrashes){
     EXPECT_TRUE(r.collided);
     EXPECT_NEAR(r.impact_speed, aeb::kmh(50), 0.1);
 }
+
+TEST(Sim, TraceRecordsEachStep) {
+    aeb::VehicleState ego  {0, aeb::kmh(50), 0};
+    aeb::VehicleState lead {aeb::kmh(50) * 4, 0, 0};
+    aeb::SimResult r = aeb::run(ego, lead);
+
+    ASSERT_FALSE(r.trace.empty());
+    EXPECT_DOUBLE_EQ(r.trace.front().t, 0.0);              // first snapshot at t = 0
+    EXPECT_EQ(r.trace.size(), 3000u);                       // no crash → runs the full 30 s at dt 0.01
+    EXPECT_GT(r.trace.back().gap, 0.0);                    // never touched
+}
