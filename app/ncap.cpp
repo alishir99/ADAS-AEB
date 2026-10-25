@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 #include "aeb/sim.hpp"
+#include <fstream>
 
 struct Scenario {
     std::string name;
@@ -34,12 +35,19 @@ int main(){
         {"CCRb", 50, 50, 40, -2},
         {"CCRb", 50, 50, 40, -6},
     };
-
+    
+    std::ofstream csv("trace.csv");
+    csv << "test,ego_kmh,lead_kmh,start_gap,lead_decel,t,ego_v,lead_v,gap,ttc,state\n";
     std::printf("%-6s %10s %10s %8s %7s  %s\n", "Test", "Ego", "Lead", "Gap", "Decel", "Result");
-    for (const Scenario& sc: scenarios){
+    for (const Scenario& sc: scenarios){   
         aeb::VehicleState ego {0, aeb::kmh(sc.ego_kmh), 0};
         aeb::VehicleState lead {sc.gap_m, aeb::kmh(sc.lead_kmh), sc.lead_decel};
         aeb::SimResult r = aeb::run(ego, lead);
+        for (const aeb::Sample& p : r.trace) {
+            csv << sc.name << ',' << sc.ego_kmh << ',' << sc.lead_kmh << ',' << sc.gap_m << ',' << sc.lead_decel << ','
+                << p.t << ',' << p.ego_v << ',' << p.lead_v << ',' << p.gap << ',' << p.ttc << ','
+                << static_cast<int>(p.state) << '\n';
+        }
         if (r.collided)
             std::printf("%-6s %5.0f km/h %5.0f km/h %6.1f m %5.1f m/s2  FAIL (hit at %.1f km/h)\n",
                         sc.name.c_str(), sc.ego_kmh, sc.lead_kmh, sc.gap_m, sc.lead_decel, r.impact_speed * 3.6);
