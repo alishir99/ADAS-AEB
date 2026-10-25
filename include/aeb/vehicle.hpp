@@ -1,6 +1,7 @@
 #pragma once
 
 namespace aeb {
+    constexpr double kmh(double v) { return v / 3.6; }   // km/h → m/s
     struct VehicleState{
         double position;         // m
         double velocity;        // m/s

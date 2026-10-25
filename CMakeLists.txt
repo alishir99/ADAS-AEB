@@ -25,3 +25,6 @@ target_link_libraries(tests PRIVATE GTest::gtest_main aeb)
 
 include(GoogleTest)
 gtest_discover_tests(tests) 
+
+add_executable(ncap ./app/ncap.cpp)
+target_link_libraries(ncap PRIVATE aeb)
