@@ -8,6 +8,11 @@ itself to avoid hitting the car ahead.
 
 > **Status: in progress.** Built step by step, test-first, with GoogleTest.
 
+![AEB response in the Euro NCAP CCRb test](docs/aeb_ccrb.png)
+
+*The car ahead brakes hard 12 m in front. The system warns at 0.7 s, brakes
+partially at 1.0 s and fully at 1.45 s, and stops 37 cm short.*
+
 ## How it works
 
 1. **Vehicle model:** each car moves with constant-acceleration physics.
@@ -22,6 +27,10 @@ itself to avoid hitting the car ahead.
    | ≤ 2.6 s     | Warn driver   |
    | ≤ 1.6 s     | Partial brake |
    | ≤ 0.9 s     | Full brake    |
+
+4. **Hysteresis and brake hold:** braking starts immediately, but only eases
+   off once TTC is clearly safe again. Once braking, it never fully releases
+   while the car is still closing in, so it brakes all the way to a stop.
 
 ## Euro NCAP results
 
@@ -42,6 +51,12 @@ Simulated against the Euro NCAP rear-end tests used to rate new cars
 **14 of 15 avoided.** At 80 km/h, full braking at TTC 0.9 s starts too late
 to stop completely, so the crash is only softened. Run `./build/ncap` to reproduce.
 
+## Known limitations
+
+- Brakes act instantly. Real brakes need ~0.2 s to build pressure.
+- No standstill hold: after stopping, a real car would need to keep the brake on.
+- Perfect sensor: the distance and speeds are exact (noisy radar is on the roadmap).
+
 ## Roadmap
 
 - [x] CMake + GoogleTest setup
@@ -50,7 +65,7 @@ to stop completely, so the crash is only softened. Run `./build/ncap` to reprodu
 - [x] Threshold-based warn / brake decision
 - [x] Hysteresis so sensor noise can't make the brakes flicker
 - [x] Euro NCAP rear-end scenarios (CCRs, CCRm, CCRb) with pass/fail
-- [ ] Plots of speed, gap and TTC over time
+- [x] Plots of speed, gap and AEB state over time
 - [ ] Noisy radar + Kalman filter
 - [x] GitHub Actions CI
 
@@ -62,4 +77,12 @@ Requires CMake ≥ 3.20 and a C++17 compiler.
 cmake -S . -B build
 cmake --build build
 ctest --test-dir build --output-on-failure
+```
+
+To regenerate the plot (Python 3):
+
+```bash
+./build/ncap                       # writes trace.csv
+pip install -r requirements.txt
+python plot.py                     # writes docs/aeb_ccrb.png
 ```
