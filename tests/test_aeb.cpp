@@ -45,6 +45,15 @@ TEST(Update, HoldsThroughNoise){
 
 TEST(Update, ReleasesAboveMargin){
     aeb::AebController c;
-    EXPECT_EQ(c.update(1.5), aeb::Aebstate::PartialBrake);
-    EXPECT_EQ(c.update(2.0), aeb::Aebstate::Warning);
+    EXPECT_EQ(c.update(2.5), aeb::Aebstate::Warning);
+    EXPECT_EQ(c.update(2.8), aeb::Aebstate::Warning);   // inside 2.6 + 0.3 → ?
+    EXPECT_EQ(c.update(3.0), aeb::Aebstate::Idle);   // above 2.9 → ?
+}
+
+TEST(Update, BrakingHoldsUntilNotClosing){
+    aeb::AebController c;
+    double inf = std::numeric_limits<double>::infinity();
+    EXPECT_EQ(c.update(0.5), aeb::Aebstate::FullBrake);
+    EXPECT_EQ(c.update(5.0), aeb::Aebstate::PartialBrake);   // still closing → soften, but keep braking
+    EXPECT_EQ(c.update(inf), aeb::Aebstate::Idle);   // stopped → threat gone
 }

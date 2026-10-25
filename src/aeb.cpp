@@ -1,5 +1,5 @@
 #include "aeb/aeb.hpp"
-
+#include <cmath>
 namespace aeb{
     Aebstate decide(double ttc, const AebConfig& cfg){
         if (ttc <= cfg.full_ttc) return Aebstate::FullBrake;
@@ -23,8 +23,13 @@ namespace aeb{
             state_ = wanted;
         }
         else {
-            if(ttc > threshold(state_, cfg_) +cfg_.hysteresis){
-                state_ = wanted;
+            if (ttc > threshold(state_, cfg_) + cfg_.hysteresis) {
+                bool braking = state_ >= Aebstate::PartialBrake;
+                bool closing = !std::isinf(ttc);                          // TTC is finite
+                if (braking && closing && wanted < Aebstate::PartialBrake)
+                    state_ = Aebstate::PartialBrake;              // soften, but keep braking
+                else
+                    state_ = wanted;
             }
         }
         return state_;
