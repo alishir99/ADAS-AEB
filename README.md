@@ -1,7 +1,6 @@
 # ADAS-AEB: Automatic Emergency Braking in C++17
 ![CI](https://github.com/alishir99/ADAS-AEB/actions/workflows/ci.yml/badge.svg)
 
-
 A simulator of **Forward Collision Warning (FCW)** and **Automatic Emergency
 Braking (AEB)**, the car safety feature that warns the driver and brakes by
 itself to avoid hitting the car ahead.
@@ -31,6 +30,9 @@ partially at 1.0 s and fully at 1.45 s, and stops 37 cm short.*
 4. **Hysteresis and brake hold:** braking starts immediately, but only eases
    off once TTC is clearly safe again. Once braking, it never fully releases
    while the car is still closing in, so it brakes all the way to a stop.
+5. **Noisy radar + Kalman filter:** the sensor model adds random error to
+   every reading. A Kalman filter combines the readings with physics to
+   estimate the true gap and closing speed before the AEB decides.
 
 ## Euro NCAP results
 
@@ -51,11 +53,31 @@ Simulated against the Euro NCAP rear-end tests used to rate new cars
 **14 of 15 avoided.** At 80 km/h, full braking at TTC 0.9 s starts too late
 to stop completely, so the crash is only softened. Run `./build/ncap` to reproduce.
 
+## Noisy radar and phantom braking
+
+A real radar is never exact. With noise added (σ = 0.2 m on distance,
+1 m/s on closing speed), the AEB reacts to single bad readings and brakes for
+no reason: **phantom braking**. Tested on the same 15 Euro NCAP scenarios plus
+20 calm drives in queue traffic (5 m behind, both at 20 km/h):
+
+| Sensor | Euro NCAP avoided | Phantom brakes in calm traffic |
+|--------|-------------------|--------------------------------|
+| Perfect sensor | 14/15 | 0/20 |
+| Noisy radar | 14/15 | **17/20** |
+| Noisy radar + Kalman filter | 14/15 | **0/20** |
+
+![Raw radar vs Kalman estimate](docs/kalman.png)
+
+The filter is tuned as a trade-off: smoothing more removes noise but reacts
+later. A slower setting crashed in the hardest test (CCRb, 12 m gap, −6 m/s²),
+so the chosen tuning favours reacting fast, and some wiggle remains.
+
 ## Known limitations
 
 - Brakes act instantly. Real brakes need ~0.2 s to build pressure.
 - No standstill hold: after stopping, a real car would need to keep the brake on.
-- Perfect sensor: the distance and speeds are exact (noisy radar is on the roadmap).
+- Radar noise is a simple bell curve. Real radars also see ghost objects
+  (bridges, manhole covers), a common real-world cause of phantom braking.
 
 ## Roadmap
 
@@ -66,7 +88,7 @@ to stop completely, so the crash is only softened. Run `./build/ncap` to reprodu
 - [x] Hysteresis so sensor noise can't make the brakes flicker
 - [x] Euro NCAP rear-end scenarios (CCRs, CCRm, CCRb) with pass/fail
 - [x] Plots of speed, gap and AEB state over time
-- [ ] Noisy radar + Kalman filter
+- [x] Noisy radar + Kalman filter
 - [x] GitHub Actions CI
 
 ## Build and test
@@ -79,10 +101,10 @@ cmake --build build
 ctest --test-dir build --output-on-failure
 ```
 
-To regenerate the plot (Python 3):
+To regenerate the plots (Python 3):
 
 ```bash
-./build/ncap                       # writes trace.csv
+./build/ncap                       # writes trace.csv and radar.csv
 pip install -r requirements.txt
-python plot.py                     # writes docs/aeb_ccrb.png
+python plot.py                     # writes docs/aeb_ccrb.png and docs/kalman.png
 ```

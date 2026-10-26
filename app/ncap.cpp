@@ -91,5 +91,12 @@ int main(){
 
         std::printf("%-22s %7d/15 %13d/20\n", su.name, avoided, phantom);
     }
+    std::ofstream rcsv("radar.csv");
+    rcsv << "t,true_closing,raw_closing,est_closing\n";
+    aeb::VehicleState ego  {0.0, aeb::kmh(50), 0.0};
+    aeb::VehicleState lead {12.0, aeb::kmh(50), -6.0};
+    aeb::SimResult r = aeb::run(ego, lead, {}, 0.01, 30.0, {0.2, 1.0, 42, true});
+    for (const aeb::Sample& p : r.trace)
+        rcsv << p.t << ',' << p.ego_v -p.lead_v << ',' << p.raw_closing << ',' << p.est_closing << '\n';
     return 0;
 }

@@ -13,6 +13,8 @@ struct Sample {
     double gap;
     double ttc;
     Aebstate state;
+    double raw_closing;
+    double est_closing; 
 };
 
 struct SimResult{
