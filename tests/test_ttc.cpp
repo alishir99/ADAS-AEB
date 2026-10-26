@@ -34,3 +34,7 @@ TEST(TTC, TouchingSameSpeed) {
     EXPECT_DOUBLE_EQ(aeb::ttc(ego, lead), 0.0);
     // you write it: both at position 40, both at 20 m/s → expect 0
 }
+
+TEST(TTC, FromGapAndClosing){
+    EXPECT_DOUBLE_EQ(aeb::ttc(20.0, 5.0), 4.0);
+}
