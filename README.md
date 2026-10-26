@@ -5,7 +5,8 @@ A simulator of **Forward Collision Warning (FCW)** and **Automatic Emergency
 Braking (AEB)**, the car safety feature that warns the driver and brakes by
 itself to avoid hitting the car ahead.
 
-> **Status: in progress.** Built step by step, test-first, with GoogleTest.
+> **Status: complete.** Built test-first: 36 unit tests (GoogleTest), zero
+> compiler warnings (`-Wall -Wextra -Wpedantic -Werror`), CI on every push.
 
 ![AEB response in the Euro NCAP CCRb test](docs/aeb_ccrb.png)
 

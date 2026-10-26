@@ -28,3 +28,8 @@ gtest_discover_tests(tests)
 
 add_executable(ncap ./app/ncap.cpp)
 target_link_libraries(ncap PRIVATE aeb)
+
+set(WARNINGS -Wall -Wextra -Wpedantic -Werror)
+target_compile_options(aeb   PRIVATE ${WARNINGS})
+target_compile_options(tests PRIVATE ${WARNINGS})
+target_compile_options(ncap  PRIVATE ${WARNINGS})
