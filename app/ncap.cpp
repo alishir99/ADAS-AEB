@@ -12,6 +12,12 @@ struct Scenario {
     double lead_decel;   // 0, expect CCRb (car to car rear break) where the lead car brakes
 };
 
+static bool braked(const aeb::SimResult& r){
+    for (const aeb::Sample& p : r.trace){
+        if(p.state >= aeb::Aebstate::PartialBrake)    return true;
+    }
+    return false;
+}
 int main(){
     std::vector<Scenario> scenarios = {
         // CCRs: lead stopped, start 4 s away -> gap = speed*4
@@ -54,6 +60,36 @@ int main(){
         else
             std::printf("%-6s %5.0f km/h %5.0f km/h %6.1f m %5.1f m/s2  PASS\n",
                         sc.name.c_str(), sc.ego_kmh, sc.lead_kmh, sc.gap_m, sc.lead_decel);
+    }
+    struct Setup { const char* name; aeb::RadarConfig radar; };
+    std::vector<Setup> setups = {
+        {"Perfect sensor",       {}},
+        {"Noisy radar",          {0.2, 1.0, 42, false}},
+        {"Noisy radar + Kalman", {0.2, 1.0, 42, true}},
+    };
+
+    std::printf("\n%-22s %10s %16s\n", "Sensor", "Avoided", "Phantom brakes");
+    for (const Setup& su : setups) {
+        // a) Euro NCAP: count the scenarios with no crash
+        int avoided = 0;
+        for (const Scenario& sc : scenarios) {
+            aeb::VehicleState ego  {0, aeb::kmh(sc.ego_kmh), 0};
+            aeb::VehicleState lead {sc.gap_m, aeb::kmh(sc.lead_kmh), sc.lead_decel};
+            aeb::SimResult r = aeb::run(ego, lead, {}, 0.01, 30.0, su.radar);
+            if (!r.collided) avoided++;
+        }
+
+        // b) queue traffic: 20 drives, each with different noise
+        int phantom = 0;
+        for (unsigned seed = 1; seed <= 20; seed++) {
+            aeb::RadarConfig rc = su.radar;
+            rc.seed = seed;
+            aeb::VehicleState ego  {0.0, aeb::kmh(20), 0.0};
+            aeb::VehicleState lead {5.0, aeb::kmh(20), 0.0};
+            if (braked(aeb::run(ego, lead, {}, 0.01, 30.0, rc))) phantom++;
+        }
+
+        std::printf("%-22s %7d/15 %13d/20\n", su.name, avoided, phantom);
     }
     return 0;
 }
