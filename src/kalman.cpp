@@ -20,4 +20,22 @@ namespace aeb{
         P_[1][1] = d + q_*dt2;
     }
     
+    void Kalman::correct_one(int i, double z, double r){
+        // z = the radar reading, r = how noisy the radar is, i = which value (0 gap, 1 closing)
+        double s  = P_[i][i] + r;
+        double k0 = P_[0][i] /s;
+        double k1 = P_[1][i]/s;
+        double y  =  z - x_[i];
+
+        x_[0] += k0 *y;
+        x_[1] +=k1 *y;
+        double p0 = P_[i][0], p1 = P_[i][1];
+        P_[0][0] -= k0*p0;  P_[0][1] -= k0*p1;
+        P_[1][0] -= k1*p0;  P_[1][1] -= k1*p1;
+    }
+
+    void Kalman::correct(Measurement m){
+    correct_one(0, m.gap, r_gap_);
+    correct_one(1, m.closing, r_speed_);
+}
 }

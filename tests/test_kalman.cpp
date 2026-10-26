@@ -1,5 +1,31 @@
 #include <gtest/gtest.h>
 #include "aeb/kalman.hpp"
+#include <cmath>
+#include <algorithm>
+#include "aeb/radar.hpp"
+
+TEST(Kalman, EqualTrustMeetsHalfway) {
+    aeb::Kalman kf({40.0, 10.0}, 0.2, 1.0, 20.0);
+    kf.correct({41.0, 10.0});              // radar says 41; filter and radar are equally unsure
+     EXPECT_NEAR(kf.gap(), 40.5, 1e-9);   
+}
+
+TEST(Kalman, SmoothsNoisyRadar) {
+    aeb::Radar radar({0.2, 1.0, 42});
+    aeb::VehicleState ego {0, 10, 0}, lead {20, 10, 0};
+    aeb::Kalman kf(radar.measure(ego, lead), 0.2, 1.0, 20.0);
+    double worst_raw = 0, worst_filtered = 0;
+    for (int i = 0; i < 1000; i++) {
+         aeb::Measurement m = radar.measure(ego, lead);
+        kf.predict(0.01, 0.0);
+        kf.correct(m);
+        if (i >= 100) {
+            worst_raw      = std::max(worst_raw, std::abs(m.closing));
+            worst_filtered = std::max(worst_filtered, std::abs(kf.closing()));
+        }
+    }
+    EXPECT_LT(worst_filtered, worst_raw / 2);               // at least twice as calm
+}
 
 TEST(Kalman, StartsAtFirstMeasurement) {
     aeb::Kalman kf({40.0, 10.0}, 0.2, 1.0, 20.0);   // first reading, gap σ, speed σ, accel σ
