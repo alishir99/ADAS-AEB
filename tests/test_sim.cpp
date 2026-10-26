@@ -52,4 +52,20 @@ TEST(Sim, NoisyRadarCausesPhantomBraking) {
     aeb::RadarConfig noisy {0.2, 1.0, 42};             // 20 cm, 1 m/s, seed
     aeb::SimResult r = aeb::run(ego, lead, {}, 0.01, 30.0, noisy);
     EXPECT_GT(braking_steps(r), 0);   
-}                 
+}   
+
+TEST(Sim, KalmanStopsPhantomBraking) {
+    aeb::VehicleState ego  {0.0, aeb::kmh(20), 0.0};
+    aeb::VehicleState lead {5.0, aeb::kmh(20), 0.0};
+    aeb::RadarConfig filtered {0.2, 1.0, 42, true};
+    aeb::SimResult r = aeb::run(ego, lead, {}, 0.01, 30.0, filtered);
+    EXPECT_EQ(braking_steps(r), 0);                 // smooth enough: no false alarms
+}
+
+TEST(Sim, KalmanStillAvoidsCCRb) {
+    aeb::VehicleState ego  {0.0, aeb::kmh(50), 0.0};
+    aeb::VehicleState lead {12.0, aeb::kmh(50), -6.0};   // hardest case: hard braking, close
+    aeb::RadarConfig filtered {0.2, 1.0, 42, true};
+    aeb::SimResult r = aeb::run(ego, lead, {}, 0.01, 30.0, filtered);
+    EXPECT_FALSE(r.collided);                       // fast enough: still reacts to a real threat
+}

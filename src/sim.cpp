@@ -1,6 +1,7 @@
 #include "aeb/sim.hpp"
 #include "aeb/ttc.hpp"
 #include "aeb/radar.hpp"
+#include "aeb/kalman.hpp"
 
 namespace aeb{
 static double brake_decel(Aebstate s, const AebConfig& cfg){
@@ -20,8 +21,16 @@ SimResult run(VehicleState ego, VehicleState lead, const AebConfig& cfg,
     SimResult r;
     int steps = static_cast<int>(duration/dt); 
     Radar radar(radar_cfg);
+    Kalman kf(radar.measure(ego, lead), radar_cfg.gap_sigma,
+                radar_cfg.speed_sigma, radar_cfg.accel_sigma);
     for (int i=0; i<steps; i++){
         Measurement m = radar.measure(ego, lead);
+        if(radar_cfg.kalman){
+            kf.predict(dt, ego.acceleration);
+            kf.correct(m);
+            m = {kf.gap(), kf.closing()};
+
+        }
         double t = ttc(m.gap, m.closing);
         Aebstate s = ctrl.update(t);
         ego.acceleration = brake_decel(s, cfg);
