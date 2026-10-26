@@ -6,8 +6,8 @@ TEST(Radar, PerfectWhenNoNoise) {
     aeb::VehicleState ego  {0.0, 20.0, 0.0};
     aeb::VehicleState lead {40.0, 10.0, 0.0};
     aeb::Measurement m = radar.measure(ego, lead);
-    EXPECT_DOUBLE_EQ(m.gap, lead.position - ego.position);
-    EXPECT_DOUBLE_EQ(m.closing, ego.velocity - lead.velocity);
+    EXPECT_DOUBLE_EQ(m.gap, 40.0);
+    EXPECT_DOUBLE_EQ(m.closing, 10.0);
 }
 
 TEST(Radar, SameSeedSameNoise) {
